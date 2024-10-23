@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User } from './entity/user.entity';
+import { KafkaModule } from '../kafka.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])], // Aqui está a importação correta
+  imports: [TypeOrmModule.forFeature([User]), KafkaModule],
   controllers: [UsersController],
   providers: [UsersService],
 })

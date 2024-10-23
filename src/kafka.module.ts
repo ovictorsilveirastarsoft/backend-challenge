@@ -9,7 +9,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['kafka:9092'], // Use o nome do serviço definido no docker-compose
+            brokers: ['kafka:9092'],
           },
           consumer: {
             groupId: 'user-consumer',
@@ -18,6 +18,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  exports: [ClientsModule], // Exporte o ClientsModule para uso em outros módulos
+  exports: [ClientsModule],
 })
 export class KafkaModule {}

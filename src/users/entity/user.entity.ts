@@ -1,16 +1,21 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users') // Nome da tabela no banco de dados
 export class User {
-  @PrimaryGeneratedColumn() // Gera um ID único automaticamente
+  @PrimaryGeneratedColumn()
+  @ApiProperty()
   id: number;
 
-  @Column() // Coluna para o nome do usuário
+  @Column()
+  @ApiProperty()
   name: string;
 
-  @Column({ unique: true }) // Coluna para o email, deve ser único
+  @Column()
+  @ApiProperty()
   email: string;
 
-  @Column() // Coluna para a senha
-  password: string; // Lembre-se de hash a senha antes de salvar!
+  @Column()
+  @ApiProperty()
+  password: string;
 }
