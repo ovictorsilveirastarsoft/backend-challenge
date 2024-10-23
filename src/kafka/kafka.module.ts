@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { KafkaService } from './kafka.service';
+import { UserConsumer } from './consumers/user.consumer'; // Exemplo de consumer
 
 @Module({
   imports: [
@@ -9,15 +11,16 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['kafka:9092'],
+            brokers: ['kafka:9092'], // Altere para seu broker
           },
           consumer: {
-            groupId: 'user-consumer',
+            groupId: 'my-consumer-group', // Grupo do consumidor
           },
         },
       },
     ]),
   ],
-  exports: [ClientsModule],
+  providers: [KafkaService, UserConsumer],
+  exports: [KafkaService],
 })
 export class KafkaModule {}

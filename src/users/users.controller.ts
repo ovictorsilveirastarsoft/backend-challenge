@@ -95,10 +95,14 @@ export class UsersController {
     status: 200,
     description: 'User updated successfully.',
     type: User,
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiBody({
+    description: 'Data to update a user',
+    type: UpdateUserDto,
     schema: {
       type: 'object',
       properties: {
-        id: { type: 'integer', example: 1 },
         name: { type: 'string', example: 'João Silva' },
         email: { type: 'string', example: 'joao.silva@example.com' },
         password: { type: 'string', example: 'nova-senha-segura' },

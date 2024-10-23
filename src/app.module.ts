@@ -1,22 +1,18 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module'; // Ajuste o caminho conforme necessário
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { NestApplication } from '@nestjs/core';
+import { KafkaModule } from './kafka/kafka.module';
+import { ConfigModule } from './config/config.module';
+import { DatabaseModule } from './database/database.module';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'db',
-      port: 5432,
-      username: 'usuario',
-      password: 'senha',
-      database: 'meu_banco',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    ConfigModule.forRoot(),
     UsersModule,
+    KafkaModule,
+    ConfigModule,
+    DatabaseModule,
+    CacheModule,
   ],
 })
 export class AppModule {}
