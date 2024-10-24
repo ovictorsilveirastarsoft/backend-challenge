@@ -5,9 +5,12 @@ import { KafkaService } from './kafka.service';
 export class KafkaController {
   constructor(private readonly kafkaService: KafkaService) {}
 
-  @Post('send')
-  async sendMessage(@Body() body: { topic: string; message: string }) {
-    await this.kafkaService.send(body.topic, body.message);
+  @Post('send-user-created')
+  async sendMessage(
+    @Body() body: { id: number; name: string; email: string; password: string },
+  ) {
+    const topic = 'user_created'; // Defina o tópico aqui
+    await this.kafkaService.send(topic, body);
     return { success: true };
   }
 }

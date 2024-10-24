@@ -29,7 +29,7 @@ services:
       POSTGRES_PASSWORD: senha
       POSTGRES_DB: meu_banco
     ports:
-      - '5433:5433'
+      - '5432:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
 
@@ -55,16 +55,16 @@ services:
       - zookeeper_log:/var/lib/zookeeper/log
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.2.2 # Use uma versão específica e estável
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKAJS_NO_PARTITIONER_WARNING: '1'
-      KAFKA_MESSAGE_MAX_BYTES: 200000000
-      KAFKA_MAX_REQUEST_SIZE: 200000000
+      KAFKA_MAX_REQUEST_SIZE: 209715200 # 200 MB
+      KAFKA_MESSAGE_MAX_BYTES: 209715200 # 200 MB
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' # Evitar criação automática de tópicos
     ports:
       - '9092:9092'
     depends_on:

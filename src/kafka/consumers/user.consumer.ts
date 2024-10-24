@@ -1,11 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
+import { User } from 'src/users/entity/user.entity';
 
 @Injectable()
-export class UserConsumer {
-  @MessagePattern('user-topic') // Tópico que você deseja escutar
-  async handleUserMessage(message: any) {
-    console.log(`Received message: ${JSON.stringify(message.value)}`);
-    // Processar a mensagem aqui
+export class UserConsumer implements OnModuleInit {
+  onModuleInit() {
+    console.log('Kafka Consumer is initialized');
+  }
+
+  @MessagePattern('user_created')
+  handleUserCreated(user: User) {
+    console.log('User created event received:', user);
+    // Lógica adicional aqui
+    console.log('Tamanho da mensagem:', JSON.stringify(user).length);
   }
 }

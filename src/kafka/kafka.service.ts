@@ -11,11 +11,14 @@ export class KafkaService implements OnModuleInit {
     await this.kafkaClient.connect();
   }
 
-  async emit(topic: string, message: any) {
-    return this.kafkaClient.emit(topic, message);
-  }
-
   async send(topic: string, message: any) {
+    // Log o tamanho da mensagem
+    console.log(
+      'Tamanho da mensagem:',
+      Buffer.byteLength(JSON.stringify(message)),
+    );
+
+    // Enviar a mensagem para o Kafka
     return this.kafkaClient.send(topic, message);
   }
 }

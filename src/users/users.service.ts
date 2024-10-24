@@ -1,4 +1,3 @@
-// src/users/users.service.ts
 import { BadRequestException, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,14 +16,20 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.usersRepository.create(createUserDto);
-    // Hash a senha aqui
-    await this.usersRepository.save(user);
+    try {
+      const user = this.usersRepository.create(createUserDto);
+      // Aqui você pode fazer a hash da senha, se necessário
 
-    // Envie uma mensagem para o Kafka após a criação do usuário
-    await this.kafkaService.emit('user_created', user);
+      await this.usersRepository.save(user);
 
-    return user;
+      // Envie uma mensagem para o Kafka após a criação do usuário
+      await this.kafkaService.emit('user_created', user);
+
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new BadRequestException('Failed to create user');
+    }
   }
 
   async findAll(): Promise<User[]> {
@@ -32,18 +37,25 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    return this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     if (!Object.keys(updateUserDto).length) {
       throw new BadRequestException('No fields to update.');
     }
-    await this.usersRepository.update(id, updateUserDto);
+
+    const user = await this.findOne(id);
+    await this.usersRepository.update(user.id, updateUserDto);
     return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+    const user = await this.findOne(id);
+    await this.usersRepository.delete(user.id);
   }
 }
