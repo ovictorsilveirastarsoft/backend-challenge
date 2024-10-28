@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { User } from 'src/users/entity/user.entity';
+import { Users } from 'src/users/entity/users.entity';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit {
@@ -9,7 +9,7 @@ export class UserConsumer implements OnModuleInit {
   }
 
   @MessagePattern('user_created')
-  handleUserCreated(user: User) {
+  handleUserCreated(user: Users) {
     console.log('User created event received:', user);
     // Lógica adicional aqui
     console.log('Tamanho da mensagem:', JSON.stringify(user).length);

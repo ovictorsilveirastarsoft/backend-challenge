@@ -12,7 +12,7 @@ import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entity/user.entity';
+import { Users } from './entity/users.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -37,10 +37,10 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: 'User created successfully.',
-    type: User,
-  }) // Resposta de sucesso
-  @ApiResponse({ status: 400, description: 'Bad request.' }) // Resposta em caso de erro
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    type: Users,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request.' })
+  async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
     return this.usersService.create(createUserDto);
   }
 
@@ -49,7 +49,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'List of users.',
-    type: User,
+    type: UpdateUserDto,
     isArray: true,
     schema: {
       type: 'array',
@@ -64,7 +64,7 @@ export class UsersController {
       },
     },
   })
-  findAll(): Promise<User[]> {
+  findAll(): Promise<Users[]> {
     return this.usersService.findAll();
   }
 
@@ -73,7 +73,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User found.',
-    type: User,
+    type: UpdateUserDto,
     schema: {
       type: 'object',
       properties: {
@@ -85,7 +85,7 @@ export class UsersController {
     },
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  findOne(@Param('id') id: number): Promise<User> {
+  findOne(@Param('id') id: number): Promise<Users> {
     return this.usersService.findOne(id);
   }
 
@@ -94,7 +94,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User updated successfully.',
-    type: User,
+    type: UpdateUserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiBody({
@@ -113,7 +113,7 @@ export class UsersController {
   update(
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
+  ): Promise<Users> {
     return this.usersService.update(id, updateUserDto);
   }
 

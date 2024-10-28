@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Inject,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entity/user.entity';
+import { Users } from './entity/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ClientKafka } from '@nestjs/microservices';
@@ -9,21 +14,26 @@ import { ClientKafka } from '@nestjs/microservices';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE') // Injetando o cliente Kafka
     private readonly kafkaService: ClientKafka,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<Users> {
     try {
+      // Cria a instância do usuário
       const user = this.usersRepository.create(createUserDto);
-      // Aqui você pode fazer a hash da senha, se necessário
 
+      // Salva o usuário no banco de dados
       await this.usersRepository.save(user);
 
-      // Envie uma mensagem para o Kafka após a criação do usuário
-      await this.kafkaService.emit('user_created', user);
+      // Envia uma mensagem ao Kafka com os dados do usuário criado
+      await this.kafkaService.emit('user_created', {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
 
       return user;
     } catch (error) {
@@ -32,11 +42,11 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<Users[]> {
     return this.usersRepository.find();
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: number): Promise<Users> {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new BadRequestException('User not found');
@@ -44,14 +54,27 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    if (!Object.keys(updateUserDto).length) {
-      throw new BadRequestException('No fields to update.');
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    // Verifica se o usuário existe
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const user = await this.findOne(id);
-    await this.usersRepository.update(user.id, updateUserDto);
-    return this.findOne(id);
+    // Logando dados antes da atualização
+    console.log('Antes da atualização:', user);
+    console.log('Dados do DTO:', updateUserDto);
+
+    // Atualiza o usuário com os dados recebidos
+    Object.assign(user, updateUserDto);
+
+    // Salva o usuário atualizado
+    const updatedUser = await this.usersRepository.save(user);
+
+    // Logando dados após a atualização
+    console.log('Usuário atualizado:', updatedUser);
+
+    return updatedUser;
   }
 
   async remove(id: number): Promise<void> {

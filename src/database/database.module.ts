@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/entity/user.entity';
+import { Users } from '../users/entity/users.entity';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { User } from '../users/entity/user.entity';
           username: configService.get<string>('TYPEORM_USERNAME'),
           password: configService.get<string>('TYPEORM_PASSWORD'),
           database: configService.get<string>('TYPEORM_DATABASE'),
-          entities: [User], // Adicionando a entidade User
+          entities: [Users], // Adicionando a entidade User
           synchronize: configService.get<boolean>('TYPEORM_SYNCHRONIZE'),
           logging: true,
           extra: {
