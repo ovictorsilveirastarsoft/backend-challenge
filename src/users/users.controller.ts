@@ -33,11 +33,11 @@ export class UsersController {
       },
     },
   })
-  @ApiOperation({ summary: 'Create a new user' }) // Descrição da operação
+  @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({
     status: 201,
     description: 'User created successfully.',
-    type: Users,
+    type: CreateUserDto,
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
