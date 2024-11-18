@@ -99,7 +99,7 @@ export class UsersService {
     // console.log('Cache miss for user:', id);
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário nao encontrado');
     }
     // Armazena no cache
     //this.cacheManager.set(`user_${id}`, user, 3600); 
