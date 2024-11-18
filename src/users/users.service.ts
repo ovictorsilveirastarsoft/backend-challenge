@@ -61,10 +61,6 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Logando dados antes da atualização
-    console.log('Antes da atualização:', user);
-    console.log('Dados do DTO:', updateUserDto);
-
     // Atualiza o usuário com os dados recebidos
     Object.assign(user, updateUserDto);
 

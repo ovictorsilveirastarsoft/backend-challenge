@@ -11,16 +11,16 @@ async function bootstrap() {
     transport: Transport.KAFKA,
     options: {
       client: {
-        brokers: ['kafka:9092'], // Altere para seu broker Kafka
+        brokers: ['kafka:9092'], 
       },
       consumer: {
-        groupId: 'my-consumer-group', // Altere conforme necessário
+        groupId: 'my-consumer-group',
       },
     },
   });
 
   // Inicia o microserviço
-  await app.startAllMicroservices(); // Alterado para startAllMicroservices
+  await app.startAllMicroservices(); 
 
   // Configurando o Swagger
   const config = new DocumentBuilder()
@@ -33,7 +33,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
 
 bootstrap();

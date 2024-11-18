@@ -14,7 +14,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['kafka:9092'], // Altere para seu broker Kafka
+            brokers: ['kafka:9092'],
           },
         },
       },
