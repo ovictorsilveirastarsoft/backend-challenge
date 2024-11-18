@@ -111,7 +111,7 @@ export class UsersController {
     description: 'Usuario atualizado.',
     type: UpdateUserDto,
   })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({ status: 404, description: 'Usuario nao encontrado' })
   @ApiBody({
     description: 'Dados de atualização do usuário',
     type: UpdateUserDto,
