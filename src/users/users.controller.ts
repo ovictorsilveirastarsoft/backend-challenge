@@ -41,7 +41,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
-    return this.usersService.create(createUserDto);
+    return this.usersService.addUser(createUserDto);
   }
 
   @Get()
@@ -65,7 +65,7 @@ export class UsersController {
     },
   })
   findAll(): Promise<Users[]> {
-    return this.usersService.findAll();
+    return this.usersService.usersAll();
   }
 
   @Get(':id')
@@ -86,7 +86,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   findOne(@Param('id') id: number): Promise<Users> {
-    return this.usersService.findOne(id);
+    return this.usersService.findUser(id);
   }
 
   @Patch(':id')
@@ -114,7 +114,7 @@ export class UsersController {
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<Users> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -122,6 +122,6 @@ export class UsersController {
   @ApiResponse({ status: 204, description: 'User deleted successfully.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   remove(@Param('id') id: number): Promise<void> {
-    return this.usersService.remove(id);
+    return this.usersService.removeUser(id);
   }
 }

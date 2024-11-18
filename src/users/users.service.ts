@@ -1,15 +1,12 @@
-import {
-  BadRequestException,
-  Injectable,
-  Inject,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Users } from './entity/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ClientKafka } from '@nestjs/microservices';
+import { Cache } from 'cache-manager'; 
+
 
 @Injectable()
 export class UsersService {
@@ -18,22 +15,25 @@ export class UsersService {
     private usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE')
     private readonly kafkaService: ClientKafka,
+    @Inject('CACHE_MANAGER') 
+    private cacheManager: Cache, 
+    
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<Users> {
+  private async create(createUserDto: CreateUserDto): Promise<Users> {
     try {
-      // Cria a instância do usuário
       const user = this.usersRepository.create(createUserDto);
-
-      // Salva o usuário no banco de dados
       await this.usersRepository.save(user);
 
-      // Envia uma mensagem ao Kafka com os dados do usuário criado
-      await this.kafkaService.emit('user_created', {
+      // Envia dados ao Kafka
+      this.kafkaService.emit('user_created', {
         id: user.id,
         name: user.name,
         email: user.email,
       });
+
+      // Armazena o usuário no cache
+     // this.cacheManager.set(`user_${user.id}`, user, 5); 
 
       return user;
     } catch (error) {
@@ -41,46 +41,73 @@ export class UsersService {
       throw new BadRequestException('Failed to create user');
     }
   }
-
-  async findAll(): Promise<Users[]> {
+    addUser(createUserDto: CreateUserDto): Promise<Users> {
+      return this.create(createUserDto);
+    }
+  private async findAll(): Promise<Users[]> {
     return this.usersRepository.find();
   }
+   usersAll(): Promise<Users[]> {
+    return this.findAll();
+   }
 
-  async findOne(id: number): Promise<Users> {
-    const user = await this.usersRepository.findOneBy({ id });
+  private async findOne(id: number): Promise<Users> {
+    // Tenta pegar o usuário do cache
+    // const cachedUser = await this.cacheManager.get(`user_${id}`);
+    // if (cachedUser) {
+    //   console.log('Cache hit for user:', id);
+    //   return cachedUser as Users; 
+    // }
+
+    // Se não estiver no cache, busca no banco de dados
+    // console.log('Cache miss for user:', id);
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new NotFoundException('User not found');
     }
+    // Armazena no cache
+    //this.cacheManager.set(`user_${id}`, user, 3600); 
+
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
-    // Verifica se o usuário existe
+  findUser(id: number): Promise<Users> {
+    return this.findOne(id);
+  }
+
+
+  private async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Atualiza o usuário com os dados recebidos
     Object.assign(user, updateUserDto);
-
-    // Salva o usuário atualizado
     const updatedUser = await this.usersRepository.save(user);
 
-    // Envia uma mensagem ao Kafka com os dados do usuário atualizado
-    await this.kafkaService.emit('user_updated', {
+    this.kafkaService.emit('user_updated', {
       name: user.name,
       email: user.email,
       password: user.password,
     });
-    // Logando dados após a atualização
-    console.log('Usuário atualizado:', updatedUser);
 
+    // Atualiza o cache
+    //this.cacheManager.set(`user_${updatedUser.id}`, updatedUser, 3600); 
     return updatedUser;
   }
+  updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    return this.update(id, updateUserDto);
+  }
 
-  async remove(id: number): Promise<void> {
+  private async remove(id: number): Promise<void> {
     const user = await this.findOne(id);
-    await this.usersRepository.delete(user.id);
+    this.usersRepository.delete(user.id);
+
+    // Remove o usuário do cache
+  //  this.cacheManager.del(`user_${id}`);
+  }
+
+  removeUser(id: number): Promise<void> {
+    return this.remove(id);
   }
 }

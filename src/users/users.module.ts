@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { Users } from './entity/users.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
     ]),
-  ],
+    CacheModule],
   providers: [UsersService],
   controllers: [UsersController],
 })

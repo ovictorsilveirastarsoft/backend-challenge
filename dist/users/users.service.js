@@ -19,9 +19,10 @@ const typeorm_2 = require("typeorm");
 const users_entity_1 = require("./entity/users.entity");
 const microservices_1 = require("@nestjs/microservices");
 let UsersService = class UsersService {
-    constructor(usersRepository, kafkaService) {
+    constructor(usersRepository, kafkaService, cacheManager) {
         this.usersRepository = usersRepository;
         this.kafkaService = kafkaService;
+        this.cacheManager = cacheManager;
     }
     async create(createUserDto) {
         try {
@@ -32,6 +33,7 @@ let UsersService = class UsersService {
                 name: user.name,
                 email: user.email,
             });
+            await this.cacheManager.set(`user_${user.id}`, user, 3600);
             return user;
         }
         catch (error) {
@@ -43,10 +45,17 @@ let UsersService = class UsersService {
         return this.usersRepository.find();
     }
     async findOne(id) {
-        const user = await this.usersRepository.findOneBy({ id });
-        if (!user) {
-            throw new common_1.BadRequestException('User not found');
+        const cachedUser = await this.cacheManager.get(`user_${id}`);
+        if (cachedUser) {
+            console.log('Cache hit for user:', id);
+            return cachedUser;
         }
+        console.log('Cache miss for user:', id);
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        await this.cacheManager.set(`user_${id}`, user, 3600);
         return user;
     }
     async update(id, updateUserDto) {
@@ -61,12 +70,13 @@ let UsersService = class UsersService {
             email: user.email,
             password: user.password,
         });
-        console.log('Usuário atualizado:', updatedUser);
+        await this.cacheManager.set(`user_${updatedUser.id}`, updatedUser, 3600);
         return updatedUser;
     }
     async remove(id) {
         const user = await this.findOne(id);
         await this.usersRepository.delete(user.id);
+        await this.cacheManager.del(`user_${id}`);
     }
 };
 exports.UsersService = UsersService;
@@ -74,7 +84,8 @@ exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(users_entity_1.Users)),
     __param(1, (0, common_1.Inject)('KAFKA_SERVICE')),
+    __param(2, (0, common_1.Inject)('CACHE_MANAGER')),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        microservices_1.ClientKafka])
+        microservices_1.ClientKafka, Object])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

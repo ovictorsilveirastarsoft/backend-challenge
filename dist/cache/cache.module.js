@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CacheModule = void 0;
 const common_1 = require("@nestjs/common");
 const cache_manager_1 = require("@nestjs/cache-manager");
-const cache_manager_redis_store_1 = require("cache-manager-redis-store");
+const redisStore = require("cache-manager-redis-store");
 let CacheModule = class CacheModule {
 };
 exports.CacheModule = CacheModule;
@@ -18,8 +18,8 @@ exports.CacheModule = CacheModule = __decorate([
         imports: [
             cache_manager_1.CacheModule.registerAsync({
                 useFactory: () => ({
-                    store: cache_manager_redis_store_1.redisStore,
-                    url: process.env.REDIS_DNS || `redis://redis:6379`,
+                    store: redisStore,
+                    url: process.env.REDIS_DNS || `redis://:mypassword@redis:6379`,
                 }),
             }),
         ],

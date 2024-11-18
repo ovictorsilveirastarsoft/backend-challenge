@@ -13,6 +13,7 @@ const users_service_1 = require("./users.service");
 const users_controller_1 = require("./users.controller");
 const users_entity_1 = require("./entity/users.entity");
 const microservices_1 = require("@nestjs/microservices");
+const cache_module_1 = require("../cache/cache.module");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
@@ -31,6 +32,7 @@ exports.UsersModule = UsersModule = __decorate([
                     },
                 },
             ]),
+            cache_module_1.CacheModule
         ],
         providers: [users_service_1.UsersService],
         controllers: [users_controller_1.UsersController],
