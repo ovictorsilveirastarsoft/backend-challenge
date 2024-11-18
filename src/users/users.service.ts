@@ -16,7 +16,7 @@ export class UsersService {
   constructor(
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
-    @Inject('KAFKA_SERVICE') // Injetando o cliente Kafka
+    @Inject('KAFKA_SERVICE')
     private readonly kafkaService: ClientKafka,
   ) {}
 
@@ -71,6 +71,12 @@ export class UsersService {
     // Salva o usuário atualizado
     const updatedUser = await this.usersRepository.save(user);
 
+    // Envia uma mensagem ao Kafka com os dados do usuário atualizado
+    await this.kafkaService.emit('user_updated', {
+      name: user.name,
+      email: user.email,
+      password: user.password,
+    });
     // Logando dados após a atualização
     console.log('Usuário atualizado:', updatedUser);
 

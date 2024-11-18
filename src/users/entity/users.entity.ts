@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class Users {
-  @PrimaryGeneratedColumn() // Gera um ID automático
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()

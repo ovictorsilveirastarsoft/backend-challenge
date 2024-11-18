@@ -7,12 +7,16 @@ import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot(
+    {isGlobal: true,
+    envFilePath: '.env',}
+    ),
     UsersModule,
     KafkaModule,
     ConfigModule,
     DatabaseModule,
     CacheModule,
+
   ],
 })
 export class AppModule {}

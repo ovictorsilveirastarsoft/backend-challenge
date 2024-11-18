@@ -20,7 +20,7 @@ import { Users } from '../users/entity/users.entity';
           username: configService.get<string>('TYPEORM_USERNAME'),
           password: configService.get<string>('TYPEORM_PASSWORD'),
           database: configService.get<string>('TYPEORM_DATABASE'),
-          entities: [Users], // Adicionando a entidade User
+          entities: [Users],
           synchronize: configService.get<boolean>('TYPEORM_SYNCHRONIZE'),
           logging: true,
           extra: {

@@ -9,8 +9,8 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: usuario
-      DB_PASSWORD: senha
-      DB_NAME: meu_banco
+      DB_PASSWORD: senhadobanco
+      DB_NAME: usuario
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:9092
@@ -26,8 +26,8 @@ services:
     image: postgres:14
     environment:
       POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: senha
-      POSTGRES_DB: meu_banco
+      POSTGRES_PASSWORD: senhadobanco
+      POSTGRES_DB: usuario
     ports:
       - '5432:5432'
     volumes:
@@ -55,7 +55,7 @@ services:
       - zookeeper_log:/var/lib/zookeeper/log
 
   kafka:
-    image: confluentinc/cp-kafka:7.2.2 # Use uma versão específica e estável
+    image: confluentinc/cp-kafka:7.2.2 
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -64,7 +64,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_MAX_REQUEST_SIZE: 209715200 # 200 MB
       KAFKA_MESSAGE_MAX_BYTES: 209715200 # 200 MB
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false' # Evitar criação automática de tópicos
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true' 
     ports:
       - '9092:9092'
     depends_on:
