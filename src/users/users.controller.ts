@@ -30,9 +30,9 @@ export class UsersController {
     examples: {
       user: {
         value: {
-          name: 'John Doe',
-          email: 'johndoe@teste.com',
-          password: '123teste',
+          name: 'Cadastro Teste',
+          email: 'cadastro@teste.com',
+          password: 'Cadastro123#',
         },
       },
     },
@@ -45,8 +45,8 @@ export class UsersController {
   })
   @ApiResponse({ status: 400, description: 'Invalid data.' })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
-    return this.usersService.addUser(createUserDto);
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<Users> {
+    return this.usersService.create(createUserDto);
   }
 
   @Get()
@@ -65,7 +65,7 @@ export class UsersController {
     if (page < 1 || limit < 1) {
       throw new BadRequestException('Page and limit must be greater than 0.');
     }
-    return this.usersService.usersAll(page, limit);
+    return this.usersService.findAll(page, limit);
   }
 
   @Get(':id')
@@ -73,11 +73,11 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User found.',
-    type: Users,
+    type: CreateUserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Users> {
-    return this.usersService.findUser(id);
+  async getUserById(@Param('id', ParseIntPipe) id: number): Promise<Users> {
+    return this.usersService.findOne(id);
   }
 
   @Patch(':id')
@@ -92,11 +92,11 @@ export class UsersController {
     type: UpdateUserDto,
   })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async update(
+  async usersUpdate(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<Users> {
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -104,6 +104,6 @@ export class UsersController {
   @ApiResponse({ status: 204, description: 'User deleted.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.usersService.removeUser(id);
+    return this.usersService.remove(id);
   }
 }

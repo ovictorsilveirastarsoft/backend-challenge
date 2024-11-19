@@ -12,6 +12,7 @@ import { CreateUserDto, UpdateUserDto } from '@users/dto';
 import { Users } from '@users/entity';
 import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
+//import { RedisService } from 'cache/redis';
 
 @Injectable()
 export class UsersService {
@@ -20,34 +21,47 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE')
     private readonly kafkaService: ClientKafka,
+   // @Inject('REDIS_SERVICE')
+  //  private readonly redisService: RedisService
   ) {}
-
   
-  async addUser(createUserDto: CreateUserDto): Promise<Users> {
-    return this.create(createUserDto);
+  private async sendUserCreatedEvent(user: Users): Promise<void> {
+    this.kafkaService.emit('user-created', user);
+  }
+
+  private async sendUserUpdatedEvent(user: Users): Promise<void> {
+    this.kafkaService.emit('user-updated', user);
+  }
+
+  private async sendUserDeletedEvent(user: Users): Promise<void> {
+    this.kafkaService.emit('user-deleted', user);
+  }
+  
+  async create(createUserDto: CreateUserDto): Promise<Users> {
+    return this.createUser(createUserDto);
   }
 
   
-  async usersAll(page: number, limit: number): Promise<Users[]> {
-    return this.findAll(page, limit);
+  async findAll(page: number, limit: number): Promise<Users[]> {
+    return this.listAllUsers(page, limit);
   }
 
   
-  async findUser(id: number): Promise<Users> {
-    return this.findOne(id);
+  async findOne(id: number): Promise<Users> {
+    return this.getUserById(id);
   }
 
   
-  async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
-    return this.update(id, updateUserDto);
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    return this.updateUser(id, updateUserDto);
   }
 
   
-  async removeUser(id: number): Promise<void> {
-    return this.remove(id);
+  async remove(id: number): Promise<void> {
+    return this.removeUser(id);
   }
 
-  private async create(createUserDto: CreateUserDto): Promise<Users> {
+  private async createUser(createUserDto: CreateUserDto): Promise<Users> {
     const { email, password } = createUserDto;
 
     const existingUser = await this.usersRepository.findOne({ where: { email } });
@@ -60,16 +74,14 @@ export class UsersService {
 
     await this.usersRepository.save(user);
 
-    this.kafkaService.emit('user_created', {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
+    this.sendUserCreatedEvent(user);
+
+    //this.redisService.set('user', JSON.stringify(user));
 
     return user;
   }
 
-  private async findAll(page: number = 1, limit: number = 10): Promise<Users[]> {
+  private async listAllUsers(page: number = 1, limit: number = 10): Promise<Users[]> {
     const skip = (page - 1) * limit;
     const users = await this.usersRepository.find({ skip, take: limit });
   
@@ -81,7 +93,7 @@ export class UsersService {
   }
   
 
-  private async findOne(id: number): Promise<Users> {
+  private async getUserById(id: number): Promise<Users> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
@@ -89,8 +101,8 @@ export class UsersService {
     return user;
   }
 
-  private async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
-    const user = await this.findOne(id);
+  private async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    const user = await this.getUserById(id);
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const emailTaken = await this.usersRepository.findOne({
@@ -108,26 +120,15 @@ export class UsersService {
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
 
-    this.kafkaService.emit('user_updated', {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
+    this.sendUserUpdatedEvent(updatedUser);
 
     return updatedUser;
   }
 
-  private async remove(id: number): Promise<void> {
-    const user = await this.findOne(id);
-
+  private async removeUser(id: number): Promise<void> {
+    const user = await this.getUserById(id);
     await this.usersRepository.delete(id);
-
-    this.kafkaService.emit('user_deleted', {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
-
+    this.sendUserDeletedEvent(user);
     throw new HttpException('User deleted successfully!', HttpStatus.OK);
   }
 }
