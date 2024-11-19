@@ -1,157 +1,133 @@
-import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  Inject,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto, UpdateUserDto, Users } from 'users';
+import { CreateUserDto, UpdateUserDto } from '@users/dto';
+import { Users } from '@users/entity';
 import { ClientKafka } from '@nestjs/microservices';
-// import { Cache } from 'cache-manager'; 
-import   * as bcrypt from 'bcryptjs';
-
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
-    private usersRepository: Repository<Users>,
+    private readonly usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE')
     private readonly kafkaService: ClientKafka,
-    // @Inject('CACHE_MANAGER') 
-    // private cacheManager: Cache, 
-    
   ) {}
 
-  private async create(createUserDto: CreateUserDto) {
-    const {name, email, password} = createUserDto;
-    
+  
+  async addUser(createUserDto: CreateUserDto): Promise<Users> {
+    return this.create(createUserDto);
+  }
+
+  
+  async usersAll(page: number, limit: number): Promise<Users[]> {
+    return this.findAll(page, limit);
+  }
+
+  
+  async findUser(id: number): Promise<Users> {
+    return this.findOne(id);
+  }
+
+  
+  async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    return this.update(id, updateUserDto);
+  }
+
+  
+  async removeUser(id: number): Promise<void> {
+    return this.remove(id);
+  }
+
+  private async create(createUserDto: CreateUserDto): Promise<Users> {
+    const { email, password } = createUserDto;
+
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
-      throw new BadRequestException('This email has already been registered.');
-    }
-    try {
-      const user = this.usersRepository.create(createUserDto);
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      createUserDto.password = hashedPassword;
-
-      user.password = hashedPassword;
-
-      // Envia dados ao Kafka
-      this.kafkaService.emit('user_created', {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      });
-      await this.usersRepository.save(user);
-      // Armazena o usuário no cache
-     // this.cacheManager.set(`user_${user.id}`, user, 5); 
-
-      return user;
-    } catch (error) {
-      throw new BadRequestException('Failed to create user.');
-    }
-  }
-    addUser(createUserDto: CreateUserDto): Promise<Users> {
-      return this.create(createUserDto);
-    }
-    
- 
-
-    private async findAll(page: number, limit: number): Promise<Users[]> {
-      const users = await this.usersRepository.find({
-        skip: this.calculateSkip(page, limit),
-        take: limit,
-      });
-      this.ensureUsersExist(users);
-  
-      return users;
+      throw new BadRequestException('This email is already registered.');
     }
 
-    private calculateSkip(page: number, limit: number): number {
-      return (page - 1) * limit;
-    }
-  
-    private ensureUsersExist(users: Users[]): void {
-      if (users.length === 0) {
-        throw new NotFoundException('No registered users.');
-      }
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = this.usersRepository.create({ ...createUserDto, password: hashedPassword });
 
-    usersAll(page: number, limit: number): Promise<Users[]> {
-      return this.findAll(page,limit);
-    }
+    await this.usersRepository.save(user);
 
-  private async findOne(id: number): Promise<Users> {
-
-    const users = await this.usersRepository.findOne({ where: { id } });
-    if (!users) {
-      throw new NotFoundException('No registered users.');
-    }
-
-    // Tenta pegar o usuário do cache
-    // const cachedUser = await this.cacheManager.get(`user_${id}`);
-    // if (cachedUser) {
-    //   console.log('Cache hit for user:', id);
-    //   return cachedUser as Users; 
-    // }
-
-    // Se não estiver no cache, busca no banco de dados
-    // console.log('Cache miss for user:', id);
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException('No registered users');
-    }
-    // Armazena no cache
-    //this.cacheManager.set(`user_${id}`, user, 3600); 
+    this.kafkaService.emit('user_created', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
 
     return user;
   }
 
-  findUser(id: number): Promise<Users> {
-    return this.findOne(id);
+  private async findAll(page: number = 1, limit: number = 10): Promise<Users[]> {
+    const skip = (page - 1) * limit;
+    const users = await this.usersRepository.find({ skip, take: limit });
+  
+    if (users.length === 0) {
+      throw new NotFoundException('No registered users.');
+    }
+  
+    return users;
   }
+  
 
-
-  private async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+  private async findOne(id: number): Promise<Users> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`User ID ${id} does not exist.`);
+      throw new NotFoundException(`User with ID ${id} not found.`);
     }
+    return user;
+  }
+
+  private async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+    const user = await this.findOne(id);
+
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      const emailTaken = await this.usersRepository.findOne({
+        where: { email: updateUserDto.email },
+      });
+      if (emailTaken) {
+        throw new BadRequestException('This email is already registered.');
+      }
+    }
+
     if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(
-        updateUserDto.password,
-        10,
-      );
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
 
     this.kafkaService.emit('user_updated', {
+      id: user.id,
       name: user.name,
       email: user.email,
-      password: user.password,
     });
 
-    // Atualiza o cache
-    //this.cacheManager.set(`user_${updatedUser.id}`, updatedUser, 3600); 
     return updatedUser;
-  }
-  updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
-    return this.update(id, updateUserDto);
   }
 
   private async remove(id: number): Promise<void> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException('No registered users.');
-    }
-    await this.usersRepository.delete(id);
-    throw new HttpException('User deleted successfully!', HttpStatus.OK);
-  
-    // Remove o usuário do cache
-  //  this.cacheManager.del(`user_${id}`);
-  }
+    const user = await this.findOne(id);
 
-  removeUser(id: number): Promise<void> {
-    return this.remove(id);
+    await this.usersRepository.delete(id);
+
+    this.kafkaService.emit('user_deleted', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    throw new HttpException('User deleted successfully!', HttpStatus.OK);
   }
 }

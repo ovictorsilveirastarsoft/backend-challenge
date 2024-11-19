@@ -1,4 +1,3 @@
-// src/users/users.controller.ts
 import {
   Controller,
   Get,
@@ -9,7 +8,9 @@ import {
   Delete,
   Query,
   BadRequestException,
-  NotFoundException,
+  ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -42,7 +43,8 @@ export class UsersController {
     description: 'User created successfully.',
     type: CreateUserDto,
   })
-  @ApiResponse({ status: 400, description: 'invalid data.' })
+  @ApiResponse({ status: 400, description: 'Invalid data.' })
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
     return this.usersService.addUser(createUserDto);
   }
@@ -54,89 +56,54 @@ export class UsersController {
     description: 'List of users.',
     type: UpdateUserDto,
     isArray: true,
-    schema: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'integer', example: 1 },
-          name: { type: 'string', example: 'João Silva' },
-          email: { type: 'string', example: 'joao.silva@example.com' },
-          password: { type: 'string', example: 'senha-segura' },
-        },
-      },
-    },
   })
-  @Get()
+  @ApiResponse({ status: 400, description: 'Invalid page or limit.' })
   async findAll(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
   ): Promise<Users[]> {
-    if (!page || !limit || page < 1 || limit < 1) {
-      throw new BadRequestException('Invalid page number or limit.');
+    if (page < 1 || limit < 1) {
+      throw new BadRequestException('Page and limit must be greater than 0.');
     }
-    const users = await this.usersService.usersAll(page, limit);
-    if (!users || users.length === 0) {
-      throw new NotFoundException('User not found.');
-    }
-    return users;
+    return this.usersService.usersAll(page, limit);
   }
-
 
   @Get(':id')
   @ApiOperation({ summary: 'User by ID.' })
   @ApiResponse({
     status: 200,
     description: 'User found.',
-    type: UpdateUserDto,
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'integer', example: 1 },
-        name: { type: 'string', example: 'João Silva' },
-        email: { type: 'string', example: 'joao.silva@example.com' },
-        password: { type: 'string', example: 'senha-segura' },
-      },
-    },
+    type: Users,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  findOne(@Param('id') id: number): Promise<Users> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Users> {
     return this.usersService.findUser(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'update a user.' })
+  @ApiOperation({ summary: 'Update a user.' })
   @ApiResponse({
     status: 200,
     description: 'Updated user.',
     type: UpdateUserDto,
   })
-  @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiBody({
     description: 'User update data.',
     type: UpdateUserDto,
-    schema: {
-      type: 'object',
-      properties: {
-        name: { type: 'string', example: 'João Silva' },
-        email: { type: 'string', example: 'joao.silva@example.com' },
-        password: { type: 'string', example: 'nova-senha-segura' },
-      },
-    },
   })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  update(
-    @Param('id') id: number,
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async update(
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<Users> {
     return this.usersService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'delete a user by ID.' })
+  @ApiOperation({ summary: 'Delete a user by ID.' })
   @ApiResponse({ status: 204, description: 'User deleted.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.usersService.removeUser(id);
   }
 }

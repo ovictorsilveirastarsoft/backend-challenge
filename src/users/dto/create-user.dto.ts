@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEmail, IsNotEmpty, IsStrongPassword, Length } from 'class-validator';
+import { Column } from 'typeorm';
 
 export class CreateUserDto {
 
@@ -12,7 +13,8 @@ export class CreateUserDto {
   @ApiProperty()
   @IsEmail({}, { message: 'O email deve ser um endereço de email válido.' })
   @IsNotEmpty({ message: 'O email não pode estar vazio.' })
-  @Length(6, 100, { message: 'O email deve ter entre 20 e 100 caracteres.' })
+  @Length(6, 100, { message: 'O email deve ter entre 6 e 100 caracteres.' })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
   @ApiProperty()
