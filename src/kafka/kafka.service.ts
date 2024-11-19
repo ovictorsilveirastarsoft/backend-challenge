@@ -12,11 +12,6 @@ export class KafkaService implements OnModuleInit {
   }
 
   async send(topic: string, message: any) {
-    // Log o tamanho da mensagem
-    console.log(
-      'Tamanho da mensagem:',
-      Buffer.byteLength(JSON.stringify(message)),
-    );
 
     // Enviar a mensagem para o Kafka
     return this.kafkaClient.send(topic, message);

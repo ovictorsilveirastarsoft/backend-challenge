@@ -26,7 +26,7 @@ export class UsersService {
     
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
-      throw new BadRequestException('Este email ja foi cadastrado');
+      throw new BadRequestException('This email has already been registered.');
     }
     try {
       const user = this.usersRepository.create(createUserDto);
@@ -48,7 +48,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      throw new BadRequestException('Falha ao criar usuario');
+      throw new BadRequestException('Failed to create user.');
     }
   }
     addUser(createUserDto: CreateUserDto): Promise<Users> {
@@ -73,7 +73,7 @@ export class UsersService {
   
     private ensureUsersExist(users: Users[]): void {
       if (users.length === 0) {
-        throw new NotFoundException('Nenhum usuário cadastrado');
+        throw new NotFoundException('No registered users.');
       }
     }
 
@@ -85,7 +85,7 @@ export class UsersService {
 
     const users = await this.usersRepository.findOne({ where: { id } });
     if (!users) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('No registered users.');
     }
 
     // Tenta pegar o usuário do cache
@@ -99,7 +99,7 @@ export class UsersService {
     // console.log('Cache miss for user:', id);
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('Usuário nao encontrado');
+      throw new NotFoundException('No registered users');
     }
     // Armazena no cache
     //this.cacheManager.set(`user_${id}`, user, 3600); 
@@ -115,7 +115,7 @@ export class UsersService {
   private async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`Usuario ID ${id} nao existe`);
+      throw new NotFoundException(`User ID ${id} does not exist.`);
     }
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(
@@ -144,10 +144,10 @@ export class UsersService {
   private async remove(id: number): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('No registered users.');
     }
     await this.usersRepository.delete(id);
-    throw new HttpException('Usuário deletado com sucesso!', HttpStatus.OK);
+    throw new HttpException('User deleted successfully!', HttpStatus.OK);
   
     // Remove o usuário do cache
   //  this.cacheManager.del(`user_${id}`);

@@ -11,10 +11,10 @@ import { UserConsumer } from './consumers/user.consumer'; // Exemplo de consumer
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['kafka:9092'], // Altere para seu broker
+            brokers: ['kafka:9092'], 
           },
           consumer: {
-            groupId: 'my-consumer-group', // Grupo do consumidor
+            groupId: 'my-consumer-group',
           },
         },
       },

@@ -11,13 +11,11 @@ export class UserConsumer implements OnModuleInit {
   @MessagePattern('user_created')
   handleUserCreated(user: Users) {
     console.log('User created event received:', user);
-    console.log('Tamanho da mensagem:', JSON.stringify(user).length);
   }
 
 
   @MessagePattern('user_updated')
   handleUserUpdated(user: Users) {
     console.log('User updated event received:', user);
-    console.log('Tamanho da mensagem:', JSON.stringify(user).length);
   }
 }

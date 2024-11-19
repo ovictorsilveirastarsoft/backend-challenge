@@ -24,7 +24,7 @@ export class UsersController {
 
   @Post()
   @ApiBody({
-    description: 'Dados do usuário',
+    description: 'User Data.',
     type: CreateUserDto,
     examples: {
       user: {
@@ -36,22 +36,22 @@ export class UsersController {
       },
     },
   })
-  @ApiOperation({ summary: 'Crie um novo usuário' })
+  @ApiOperation({ summary: 'Create new User.' })
   @ApiResponse({
     status: 201,
-    description: 'Usuario criado com sucesso.',
+    description: 'User created successfully.',
     type: CreateUserDto,
   })
-  @ApiResponse({ status: 400, description: 'dados inválidos' })
+  @ApiResponse({ status: 400, description: 'invalid data.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<Users> {
     return this.usersService.addUser(createUserDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os usuários' })
+  @ApiOperation({ summary: 'List all users.' })
   @ApiResponse({
     status: 200,
-    description: 'Listagem de usuários.',
+    description: 'List of users.',
     type: UpdateUserDto,
     isArray: true,
     schema: {
@@ -73,21 +73,21 @@ export class UsersController {
     @Query('limit') limit: number,
   ): Promise<Users[]> {
     if (!page || !limit || page < 1 || limit < 1) {
-      throw new BadRequestException('Numero de pagina ou limite invalido.');
+      throw new BadRequestException('Invalid page number or limit.');
     }
     const users = await this.usersService.usersAll(page, limit);
     if (!users || users.length === 0) {
-      throw new NotFoundException('Usuario nao encontrado.');
+      throw new NotFoundException('User not found.');
     }
     return users;
   }
 
 
   @Get(':id')
-  @ApiOperation({ summary: 'Usuario por ID' })
+  @ApiOperation({ summary: 'User by ID.' })
   @ApiResponse({
     status: 200,
-    description: 'Usuário encontrado.',
+    description: 'User found.',
     type: UpdateUserDto,
     schema: {
       type: 'object',
@@ -99,21 +99,21 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'Usuario nao encontrado' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   findOne(@Param('id') id: number): Promise<Users> {
     return this.usersService.findUser(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'atualizar um usuário' })
+  @ApiOperation({ summary: 'update a user.' })
   @ApiResponse({
     status: 200,
-    description: 'Usuario atualizado.',
+    description: 'Updated user.',
     type: UpdateUserDto,
   })
-  @ApiResponse({ status: 404, description: 'Usuario nao encontrado' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiBody({
-    description: 'Dados de atualização do usuário',
+    description: 'User update data.',
     type: UpdateUserDto,
     schema: {
       type: 'object',
@@ -124,7 +124,7 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'Usuario nao encontrado' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   update(
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -133,9 +133,9 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'deletar um usuário por ID' })
-  @ApiResponse({ status: 204, description: 'Usuario deletado.' })
-  @ApiResponse({ status: 404, description: 'Usuario nao encontrado.' })
+  @ApiOperation({ summary: 'delete a user by ID.' })
+  @ApiResponse({ status: 204, description: 'User deleted.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.removeUser(id);
   }
