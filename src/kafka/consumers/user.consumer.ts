@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { Users } from 'src/users/entity/users.entity';
+import { Users } from 'users';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit {

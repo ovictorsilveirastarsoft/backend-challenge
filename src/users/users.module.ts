@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
-import { Users } from './entity/users.entity';
+import { Users, UsersController, UsersService } from 'users';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
@@ -20,7 +17,7 @@ import { CacheModule } from 'src/cache/cache.module';
         },
       },
     ]),
-    CacheModule],
+    ],
   providers: [UsersService],
   controllers: [UsersController],
 })

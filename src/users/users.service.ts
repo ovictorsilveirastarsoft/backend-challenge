@@ -1,11 +1,9 @@
 import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Users } from './entity/users.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, UpdateUserDto, Users } from 'users';
 import { ClientKafka } from '@nestjs/microservices';
-import { Cache } from 'cache-manager'; 
+// import { Cache } from 'cache-manager'; 
 import   * as bcrypt from 'bcryptjs';
 
 
@@ -16,8 +14,8 @@ export class UsersService {
     private usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE')
     private readonly kafkaService: ClientKafka,
-    @Inject('CACHE_MANAGER') 
-    private cacheManager: Cache, 
+    // @Inject('CACHE_MANAGER') 
+    // private cacheManager: Cache, 
     
   ) {}
 
