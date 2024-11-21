@@ -3,7 +3,8 @@ import { UsersModule } from './users/users.module'; // Ajuste o caminho conforme
 import { KafkaModule } from './kafka/kafka.module';
 import { ConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
-import { CacheModule } from './cache/cache.module';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -15,8 +16,11 @@ import { CacheModule } from './cache/cache.module';
     KafkaModule,
     ConfigModule,
     DatabaseModule,
-    CacheModule,
-
+    CacheModule.register({ isGlobal: true })
   ],
+  providers: [{
+    provide: APP_INTERCEPTOR,
+    useClass: CacheInterceptor,
+  }],
 })
 export class AppModule {}

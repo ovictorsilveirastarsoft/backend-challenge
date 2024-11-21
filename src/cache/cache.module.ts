@@ -17,4 +17,4 @@ import { RedisClientOptions } from 'redis';
   ],
   exports: [NestCacheModule],
 })
-export class CacheModule {}
+export class CacheRedisModule {}

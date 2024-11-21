@@ -39,7 +39,7 @@ services:
       - '6379:6379'
     environment:
       - REDIS_PASSWORD=mypassword
-      - REDIS_DNS=redis://:mypassword@redis:6379
+      - REDIS_DNS=redis://:mypassword@redis:6379 
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
@@ -60,27 +60,27 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest  
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  # Ajustado
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  # Ajustado para o único listener
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT 
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 1000
       KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
       KAFKA_LISTENER_NAME: PLAINTEXT
       KAFKA_LISTENER_PORT: 9092
-      KAFKA_LISTENER_HOST: 0.0.0.0  # Ajustado para aceitar todas interfaces
-      KAFKA_LISTENER_INTERFACE: 0.0.0.0  # Ajustado para aceitar todas interfaces
+      KAFKA_LISTENER_HOST: 0.0.0.0 
+      KAFKA_LISTENER_INTERFACE: 0.0.0.0 
       KAFKA_REPLICATION_FACTOR: 1  
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Criação automática de tópicos
-      KAFKA_NUM_PARTITIONS: 1   # Número de partições padrão
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1   # Fator de replicação padrão
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
+      KAFKA_NUM_PARTITIONS: 1 
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1 
     ports:
       - '9092:9092'
     depends_on:
       - zookeeper
     volumes:
       - kafka_data:/var/lib/kafka/data
-    restart: always   # Garante a reinicialização automática do broker
+    restart: always  
 
 volumes:
   db_data:

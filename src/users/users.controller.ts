@@ -11,18 +11,20 @@ import {
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Users } from './entity/users.entity';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
+@UseInterceptors(CacheInterceptor)
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
   @Post()
   @ApiBody({
     description: 'User Data.',
@@ -67,7 +69,6 @@ export class UsersController {
     }
     return this.usersService.findAll(page, limit);
   }
-
   @Get(':id')
   @ApiOperation({ summary: 'User by ID.' })
   @ApiResponse({
@@ -79,6 +80,7 @@ export class UsersController {
   async getUserById(@Param('id', ParseIntPipe) id: number): Promise<Users> {
     return this.usersService.findOne(id);
   }
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user.' })
@@ -98,6 +100,7 @@ export class UsersController {
   ): Promise<Users> {
     return this.usersService.update(id, updateUserDto);
   }
+
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID.' })
