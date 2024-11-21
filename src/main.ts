@@ -13,7 +13,6 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
 
-  // Configurando o microserviço Kafka
   app.connectMicroservice({
     transport: Transport.KAFKA,
     options: {
@@ -26,13 +25,11 @@ async function bootstrap() {
     },
   });
 
-  // Inicia o microserviço
   await app.startAllMicroservices(); 
 
-  // Configurando o Swagger
   const config = new DocumentBuilder()
-    .setTitle('API de Usuários')
-    .setDescription('Documentação da API para gerenciamento de usuários')
+    .setTitle('User API')
+    .setDescription('API documentation for user management')
     .setVersion('1.0')
     .addTag('users')
     .build();

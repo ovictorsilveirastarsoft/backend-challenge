@@ -5,22 +5,22 @@ import { Column } from 'typeorm';
 export class CreateUserDto {
 
   @ApiProperty()
-  @IsString({ message: 'O nome deve ser uma string.' })
-  @IsNotEmpty({ message: 'O nome não pode estar vazio.' })
-  @Length(2, 100, { message: 'O nome deve ter entre 2 e 100 caracteres.' })
+  @IsString({ message: 'The name must be a string.' })
+  @IsNotEmpty({ message: 'The name cannot be empty.' })
+  @Length(2, 100, { message: 'The name must be between 2 and 100 characters.' })
   name: string;
 
   @ApiProperty()
-  @IsEmail({}, { message: 'O email deve ser um endereço de email válido.' })
-  @IsNotEmpty({ message: 'O email não pode estar vazio.' })
-  @Length(6, 100, { message: 'O email deve ter entre 6 e 100 caracteres.' })
+  @IsEmail({}, { message: 'The email must be a valid email address.' })
+  @IsNotEmpty({ message: 'The email cannot be empty.' })
+  @Length(6, 100, { message: 'The email must be between 6 and 100 characters.' })
   @Column({ type: 'varchar', unique: true })
   email: string;
 
   @ApiProperty()
-  @IsString({ message: 'A senha deve ser uma string.' })
-  @IsNotEmpty({ message: 'A senha não pode estar vazia.' })
+  @IsString({ message: 'The password must be a string.' })
+  @IsNotEmpty({ message: 'The password cannot be empty.' })
   @IsStrongPassword()
-  @Length(8, 100, { message: 'A senha deve ter entre 8 e 100 caracteres.' })
+  @Length(8, 100, { message: 'The password must be between 8 and 100 characters.' })
   password: string;
 }

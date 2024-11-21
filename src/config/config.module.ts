@@ -1,10 +1,11 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import {
   ConfigModuleOptions,
   ConfigModule as NestConfigModule,
 } from '@nestjs/config';
 import * as Joi from 'joi';
 
+@Global()
 @Module({})
 export class ConfigModule extends NestConfigModule {
   static forRoot(options: ConfigModuleOptions = {}) {

@@ -3,13 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {  UsersController, UsersService } from 'users';
 import { Users } from '@users/entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { KafkaModule } from 'kafka/kafka.module';
 import { RedisService } from 'cache/redis';
-import { CacheRedisModule } from 'cache/cache.module';
 
 @Module({
-  imports: [CacheRedisModule,
-    KafkaModule,
+  imports: [
     TypeOrmModule.forFeature([Users]),
     ClientsModule.register([
       {
