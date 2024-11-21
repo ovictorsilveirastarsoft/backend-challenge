@@ -105,18 +105,24 @@ export class UsersService {
 
   private async getUserById(id: number): Promise<Users> {
     const cacheKey = `user:${id}`;
-    const cachedUser = await this.redisService.get(cacheKey);
-
-    if (cachedUser) {
-      return JSON.parse(cachedUser);
+    const versionKey = 'users_cache_version';
+    let cacheVersion = await this.redisService.get(versionKey);
+    if (!cacheVersion) {
+      cacheVersion = '1'; 
+      await this.redisService.set(versionKey, cacheVersion);
     }
-
+  
+    const cachedUser = await this.redisService.get(`${cacheKey}_v${cacheVersion}`);
+    if (cachedUser) {
+      return JSON.parse(cachedUser); 
+    }
+  
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    await this.redisService.set(cacheKey, JSON.stringify(user));
+    await this.redisService.set(`${cacheKey}_v${cacheVersion}`, JSON.stringify(user));
     return user;
   }
 
