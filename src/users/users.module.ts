@@ -3,9 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {  UsersController, UsersService } from 'users';
 import { Users } from '@users/entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ProducerService } from 'kafka/producer.service';
+import { ConsumerService } from 'kafka/consumer.service';
+import { KafkaModule } from 'kafka/kafka.module';
 
 @Module({
   imports: [
+    KafkaModule,
     TypeOrmModule.forFeature([Users]),
     ClientsModule.register([
       {
@@ -19,7 +23,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
     ],
-  providers: [UsersService],
+  providers: [
+    UsersService
+  ],
   controllers: [UsersController],
 })
 export class UsersModule {}

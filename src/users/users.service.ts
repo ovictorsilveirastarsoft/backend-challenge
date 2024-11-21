@@ -12,6 +12,7 @@ import { CreateUserDto, UpdateUserDto } from '@users/dto';
 import { Users } from '@users/entity';
 import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
+import { ProducerService } from 'kafka/producer.service';
 //import { RedisService } from 'cache/redis';
 
 @Injectable()
@@ -20,22 +21,22 @@ export class UsersService {
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
     @Inject('KAFKA_SERVICE')
-    private readonly kafkaService: ClientKafka,
+    private readonly kafka: ClientKafka,
+    private readonly kafkaProducer: ProducerService
    // @Inject('REDIS_SERVICE')
   //  private readonly redisService: RedisService
   ) {}
   
   private async sendUserCreatedEvent(user: Users): Promise<void> {
-    this.kafkaService.emit('user-created', user);
+    const topic = 'user-create';
+   await this.kafkaProducer.produce(topic, {value: JSON.stringify(user)});
   }
 
   private async sendUserUpdatedEvent(user: Users): Promise<void> {
-    this.kafkaService.emit('user-updated', user);
-  }
+   await this.kafkaProducer.produce('user-update', {value: JSON.stringify(user)});}
 
   private async sendUserDeletedEvent(user: Users): Promise<void> {
-    this.kafkaService.emit('user-deleted', user);
-  }
+    await this.kafkaProducer.produce('user-delete', {value: JSON.stringify(user)});}
   
   async create(createUserDto: CreateUserDto): Promise<Users> {
     return this.createUser(createUserDto);
@@ -74,7 +75,7 @@ export class UsersService {
 
     await this.usersRepository.save(user);
 
-    this.sendUserCreatedEvent(user);
+    await this.sendUserCreatedEvent(user);
 
     //this.redisService.set('user', JSON.stringify(user));
 
@@ -120,7 +121,7 @@ export class UsersService {
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
 
-    this.sendUserUpdatedEvent(updatedUser);
+    await this.sendUserUpdatedEvent(updatedUser);
 
     return updatedUser;
   }
@@ -128,7 +129,7 @@ export class UsersService {
   private async removeUser(id: number): Promise<void> {
     const user = await this.getUserById(id);
     await this.usersRepository.delete(id);
-    this.sendUserDeletedEvent(user);
+    await this.sendUserDeletedEvent(user);
     throw new HttpException('User deleted successfully!', HttpStatus.OK);
   }
 }
