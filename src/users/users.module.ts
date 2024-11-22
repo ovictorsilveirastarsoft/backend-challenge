@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {  UsersController, UsersService } from 'users';
 import { Users } from '@users/entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RedisService } from 'cache/redis';
+import { RedisService } from 'cache/redis.service';
+import { UserCacheService } from './user-cache.service';
+import { ProducerService } from 'kafka/producer.service';
 
 @Module({
   imports: [
@@ -22,7 +24,8 @@ import { RedisService } from 'cache/redis';
     ],
   providers: [
     UsersService,
-    RedisService
+    RedisService,UserCacheService,
+    ProducerService,
   ],
   controllers: [UsersController],
 })

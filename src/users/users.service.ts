@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  Inject,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -10,20 +9,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto, UpdateUserDto } from '@users/dto';
 import { Users } from '@users/entity';
-import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
 import { ProducerService } from 'kafka/producer.service';
-import { RedisService } from 'cache/redis';
+import { UserCacheService } from '@users/user-cache.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
-    @Inject('KAFKA_SERVICE')
-    private readonly kafka: ClientKafka,
     private readonly kafkaProducer: ProducerService,
-    private readonly redisService: RedisService,
+    private readonly userCacheService: UserCacheService,  
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
@@ -63,7 +59,7 @@ export class UsersService {
     });
 
     await this.usersRepository.save(user);
-    await this.invalidateCache();
+    await this.userCacheService.invalidateCache();  // Chama o método de invalidar cache
     await this.sendUserCreatedEvent(user);
 
     return user;
@@ -72,17 +68,12 @@ export class UsersService {
   private async listAllUsers(page: number = 1, limit: number = 10): Promise<Users[]> {
     const skip = (page - 1) * limit;
     const cacheKey = `users_page_${page}_limit_${limit}`;
-    const cacheVersionKey = 'users_cache_version';
 
-    let cacheVersion = await this.redisService.get(cacheVersionKey);
-    if (!cacheVersion) {
-      cacheVersion = '1';
-      await this.redisService.set(cacheVersionKey, cacheVersion);
-    }
+    const cacheVersion = await this.userCacheService.getCacheVersion();  // Obtém a versão do cache
 
-    const cachedData = await this.redisService.get(`${cacheKey}_v${cacheVersion}`);
+    const cachedData = await this.userCacheService.getCachedData<Users[]>(`${cacheKey}`, cacheVersion); // Tipagem explícita de Users[]
     if (cachedData) {
-      return JSON.parse(cachedData);
+      return cachedData;
     }
 
     const users = await this.usersRepository.find({ skip, take: limit });
@@ -90,31 +81,18 @@ export class UsersService {
       throw new NotFoundException('No registered users.');
     }
 
-    await this.redisService.set(`${cacheKey}_v${cacheVersion}`, JSON.stringify(users));
+    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, users);  // Armazena no cache
     return users;
-  }
-
-  private async invalidateCache(): Promise<void> {
-    const cacheVersionKey = 'users_cache_version';
-
-    let currentVersion = await this.redisService.get(cacheVersionKey);
-    const newVersion = currentVersion ? parseInt(currentVersion, 10) + 1 : 1;
-
-    await this.redisService.set(cacheVersionKey, newVersion.toString());
   }
 
   private async getUserById(id: number): Promise<Users> {
     const cacheKey = `user:${id}`;
-    const versionKey = 'users_cache_version';
-    let cacheVersion = await this.redisService.get(versionKey);
-    if (!cacheVersion) {
-      cacheVersion = '1'; 
-      await this.redisService.set(versionKey, cacheVersion);
-    }
+
+    const cacheVersion = await this.userCacheService.getCacheVersion();  // Obtém a versão do cache
   
-    const cachedUser = await this.redisService.get(`${cacheKey}_v${cacheVersion}`);
+    const cachedUser = await this.userCacheService.getCachedData<Users>(`${cacheKey}`, cacheVersion);  // Tipagem explícita de User
     if (cachedUser) {
-      return JSON.parse(cachedUser); 
+      return cachedUser;
     }
   
     const user = await this.usersRepository.findOne({ where: { id } });
@@ -122,7 +100,7 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    await this.redisService.set(`${cacheKey}_v${cacheVersion}`, JSON.stringify(user));
+    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, user);  // Armazena no cache
     return user;
   }
 
@@ -145,7 +123,7 @@ export class UsersService {
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
 
-    await this.invalidateCache();
+    await this.userCacheService.invalidateCache();  // Invalida o cache
     await this.sendUserUpdatedEvent(updatedUser);
 
     return updatedUser;
@@ -154,7 +132,7 @@ export class UsersService {
   private async removeUser(id: number): Promise<void> {
     const user = await this.getUserById(id);
     await this.usersRepository.delete(id);
-    await this.invalidateCache();
+    await this.userCacheService.invalidateCache();  // Invalida o cache
     await this.sendUserDeletedEvent(user);
 
     throw new HttpException('User deleted successfully!', HttpStatus.OK);
