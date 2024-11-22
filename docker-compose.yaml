@@ -6,15 +6,16 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: usuario
-      DB_PASSWORD: senhadobanco
-      DB_NAME: usuario
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      KAFKA_BROKER: kafka:9092
-      REDIS_DNS: redis://redis:6379
+      DB_HOST: ${TYPEORM_HOST}
+      DB_PORT: ${TYPEORM_PORT}
+      DB_USER: ${TYPEORM_USERNAME}
+      DB_PASSWORD: ${TYPEORM_PASSWORD}
+      DB_NAME: ${TYPEORM_DATABASE}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      KAFKA_BROKER: ${KAFKA_BROKER}
+      REDIS_DNS: redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}
+      TYPEORM_SYNCHRONIZE: ${TYPEORM_SYNCHRONIZE}
     ports:
       - '3000:3000'
     depends_on:
@@ -25,9 +26,9 @@ services:
   db:
     image: postgres:14
     environment:
-      POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: senhadobanco
-      POSTGRES_DB: usuario
+      POSTGRES_USER: ${TYPEORM_USERNAME}
+      POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
+      POSTGRES_DB: ${TYPEORM_DATABASE}
     ports:
       - '5432:5432'
     volumes:
@@ -36,10 +37,10 @@ services:
   redis:
     image: redis:alpine
     ports:
-      - '6379:6379'
+      - '${REDIS_PORT}:${REDIS_PORT}'
     environment:
-      - REDIS_PASSWORD=mypassword
-      - REDIS_DNS=redis://:mypassword@redis:6379 
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
@@ -60,27 +61,27 @@ services:
   kafka:
     image: confluentinc/cp-kafka:latest  
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT 
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 1000
       KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
       KAFKA_LISTENER_NAME: PLAINTEXT
       KAFKA_LISTENER_PORT: 9092
-      KAFKA_LISTENER_HOST: 0.0.0.0 
-      KAFKA_LISTENER_INTERFACE: 0.0.0.0 
-      KAFKA_REPLICATION_FACTOR: 1  
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" 
-      KAFKA_NUM_PARTITIONS: 1 
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1 
+      KAFKA_LISTENER_HOST: 0.0.0.0
+      KAFKA_LISTENER_INTERFACE: 0.0.0.0
+      KAFKA_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
     ports:
       - '9092:9092'
     depends_on:
       - zookeeper
     volumes:
       - kafka_data:/var/lib/kafka/data
-    restart: always  
+    restart: always
 
 volumes:
   db_data:
