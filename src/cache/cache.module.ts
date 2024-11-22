@@ -7,7 +7,7 @@ import * as redisStore from 'cache-manager-redis-store';
   imports: [
     CacheModule.register({
         store: redisStore as any, 
-        url: process.env.REDIS_DNS || `redis://:mypassword@redis:6379`,
+        url: process.env.REDIS_DNS,
         ttl:5,
         max: 100,
       }),

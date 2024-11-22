@@ -59,7 +59,7 @@ export class UsersService {
     });
 
     await this.usersRepository.save(user);
-    await this.userCacheService.invalidateCache();  // Chama o método de invalidar cache
+    await this.userCacheService.invalidateCache();
     await this.sendUserCreatedEvent(user);
 
     return user;
@@ -69,7 +69,7 @@ export class UsersService {
     const skip = (page - 1) * limit;
     const cacheKey = `users_page_${page}_limit_${limit}`;
 
-    const cacheVersion = await this.userCacheService.getCacheVersion();  // Obtém a versão do cache
+    const cacheVersion = await this.userCacheService.getCacheVersion();  
 
     const cachedData = await this.userCacheService.getCachedData<Users[]>(`${cacheKey}`, cacheVersion); // Tipagem explícita de Users[]
     if (cachedData) {
@@ -81,14 +81,14 @@ export class UsersService {
       throw new NotFoundException('No registered users.');
     }
 
-    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, users);  // Armazena no cache
+    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, users);  
     return users;
   }
 
   private async getUserById(id: number): Promise<Users> {
     const cacheKey = `user:${id}`;
 
-    const cacheVersion = await this.userCacheService.getCacheVersion();  // Obtém a versão do cache
+    const cacheVersion = await this.userCacheService.getCacheVersion();
   
     const cachedUser = await this.userCacheService.getCachedData<Users>(`${cacheKey}`, cacheVersion);  // Tipagem explícita de User
     if (cachedUser) {
@@ -100,7 +100,7 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, user);  // Armazena no cache
+    await this.userCacheService.setCache(`${cacheKey}`, cacheVersion, user); 
     return user;
   }
 
@@ -123,7 +123,7 @@ export class UsersService {
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
 
-    await this.userCacheService.invalidateCache();  // Invalida o cache
+    await this.userCacheService.invalidateCache(); 
     await this.sendUserUpdatedEvent(updatedUser);
 
     return updatedUser;
@@ -132,7 +132,7 @@ export class UsersService {
   private async removeUser(id: number): Promise<void> {
     const user = await this.getUserById(id);
     await this.usersRepository.delete(id);
-    await this.userCacheService.invalidateCache();  // Invalida o cache
+    await this.userCacheService.invalidateCache();
     await this.sendUserDeletedEvent(user);
 
     throw new HttpException('User deleted successfully!', HttpStatus.OK);
