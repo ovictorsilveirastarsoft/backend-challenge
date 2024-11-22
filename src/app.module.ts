@@ -5,7 +5,7 @@ import { ConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { CacheRedisModule } from 'cache/cache.module';
+
 
 @Module({
   imports: [
@@ -15,7 +15,6 @@ import { CacheRedisModule } from 'cache/cache.module';
     ),
     UsersModule,
     KafkaModule,
-    CacheRedisModule,
     DatabaseModule,
     CacheModule.register({ isGlobal: true })
   ],
