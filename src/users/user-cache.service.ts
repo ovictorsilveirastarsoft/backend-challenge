@@ -1,38 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from 'cache/redis.service';
-
+import { RedisService } from 'cache/redis.service';  
 
 @Injectable()
 export class UserCacheService {
   constructor(private readonly redisService: RedisService) {}
 
-
+ 
   async getCacheVersion(): Promise<string> {
     const cacheVersionKey = 'users_cache_version';
     let cacheVersion = await this.redisService.get(cacheVersionKey);
     if (!cacheVersion) {
-      cacheVersion = '1';
+      cacheVersion = '1';  
       await this.redisService.set(cacheVersionKey, cacheVersion);
     }
     return cacheVersion;
   }
 
- 
+
   async getCachedData<T>(cacheKey: string, cacheVersion: string): Promise<T | null> {
     const cachedData = await this.redisService.get(`${cacheKey}_v${cacheVersion}`);
     if (cachedData) {
       try {
         return JSON.parse(cachedData) as T; 
       } catch (error) {
-        console.error('Error parsing cached data', error);
-        return null;
+        console.error('Erro ao analisar dados do cache', error);
+        return null; 
       }
     }
-    return null;
+    return null; 
   }
+
+
   async setCache<T>(cacheKey: string, cacheVersion: string, data: T): Promise<void> {
     await this.redisService.set(`${cacheKey}_v${cacheVersion}`, JSON.stringify(data));
   }
+
 
   async invalidateCache(): Promise<void> {
     const cacheVersionKey = 'users_cache_version';

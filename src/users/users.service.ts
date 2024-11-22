@@ -26,7 +26,7 @@ export class UsersService {
     return this.createUser(createUserDto);
   }
 
-  async findAll(page: number, limit: number): Promise<Users[]> {
+  async findAll(page: number = 1, limit: number = 10): Promise<Users[]> {
     return this.listAllUsers(page, limit);
   }
 
@@ -41,6 +41,8 @@ export class UsersService {
   async remove(id: number): Promise<void> {
     return this.removeUser(id);
   }
+
+
 
   private async createUser(createUserDto: CreateUserDto): Promise<Users> {
     const { email, password } = createUserDto;
@@ -70,7 +72,6 @@ export class UsersService {
     const cacheKey = `users_page_${page}_limit_${limit}`;
 
     const cacheVersion = await this.userCacheService.getCacheVersion();  
-
     const cachedData = await this.userCacheService.getCachedData<Users[]>(`${cacheKey}`, cacheVersion); // Tipagem explícita de Users[]
     if (cachedData) {
       return cachedData;
@@ -89,12 +90,11 @@ export class UsersService {
     const cacheKey = `user:${id}`;
 
     const cacheVersion = await this.userCacheService.getCacheVersion();
-  
     const cachedUser = await this.userCacheService.getCachedData<Users>(`${cacheKey}`, cacheVersion);  // Tipagem explícita de User
     if (cachedUser) {
       return cachedUser;
     }
-  
+
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
@@ -138,6 +138,7 @@ export class UsersService {
     throw new HttpException('User deleted successfully!', HttpStatus.OK);
   }
 
+  
   private async sendUserCreatedEvent(user: Users): Promise<void> {
     await this.kafkaProducer.produce('user-create', { value: JSON.stringify(user) });
   }
