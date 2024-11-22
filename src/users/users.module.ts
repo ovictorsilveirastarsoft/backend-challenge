@@ -6,6 +6,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RedisService } from 'cache/redis.service';
 import { UserCacheService } from './user-cache.service';
 import { ProducerService } from 'kafka/producer.service';
+import{ CreateUserUseCase, UpdateUserUseCase, DeleteUserUseCase } from './use-case';
 
 @Module({
   imports: [
@@ -24,9 +25,14 @@ import { ProducerService } from 'kafka/producer.service';
     ],
   providers: [
     UsersService,
-    RedisService,UserCacheService,
+    RedisService,
+    UserCacheService,
     ProducerService,
+    CreateUserUseCase, 
+    UpdateUserUseCase, 
+    DeleteUserUseCase,
   ],
+  exports: [UsersService],
   controllers: [UsersController],
 })
 export class UsersModule {}
